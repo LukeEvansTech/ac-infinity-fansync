@@ -141,30 +141,26 @@ class ACInfinityClient:
             logger.error("Cannot set speed: failed to get current settings")
             return False
 
-        # Build the update payload
+        logger.debug("Current settings: %s", settings)
+
+        # Copy ALL settings from existing, then override what we need
+        # This matches how the HA integration does it
+        payload = {}
+        for key, value in settings.items():
+            # Skip nested objects/dicts
+            if isinstance(value, dict):
+                continue
+            payload[key] = value
+
+        # Override the speed-related fields
         # atType: 2 = ON mode (manual speed)
         # onSpead: speed when in ON mode (0-10)
-        payload = {
-            "devId": controller_id,
-            "port": port,
-            "atType": 2,  # ON mode for manual speed control
-            "onSpead": speed,  # Target speed (note the typo in API)
-            "speak": speed,
-        }
+        payload["devId"] = controller_id
+        payload["port"] = port
+        payload["atType"] = 2  # ON mode for manual speed control
+        payload["onSpead"] = speed  # Target speed (note the typo in API)
 
-        # Include other required fields from existing settings
-        required_fields = [
-            "modeSetid", "externalPort", "surplus", "offSpead",
-            "loadState", "loadType", "devHt", "devLt", "devHh", "devLh",
-            "activeHt", "activeLt", "activeHh", "activeLh",
-            "acitveTimerOn", "acitveTimerOff",
-            "activeCycleOn", "activeCycleOff",
-            "schedStartTime", "schedEndtTime",
-        ]
-
-        for field in required_fields:
-            if field in settings:
-                payload[field] = settings[field]
+        logger.debug("Sending payload: %s", payload)
 
         try:
             # API expects query string parameters
@@ -183,6 +179,8 @@ class ACInfinityClient:
 
             response.raise_for_status()
             data = response.json()
+
+            logger.debug("API response: %s", data)
 
             if data.get("code") != 200:
                 logger.error("Failed to set speed: %s", data.get("msg"))
