@@ -144,14 +144,30 @@ class ACInfinityClient:
         logger.info("Current settings for port %d: atType=%s, onSpead=%s, speak=%s",
                     port, settings.get("atType"), settings.get("onSpead"), settings.get("speak"))
 
-        # Copy ALL settings from existing, then override what we need
-        # This matches how the HA integration does it
+        # Only include the device control keys that the API expects
+        # Based on Home Assistant integration's DeviceControlKey class
+        DEVICE_CONTROL_KEYS = [
+            "devId", "externalPort", "modeSetid", "modeType", "masterPort",
+            "surplus", "onSpead", "offSpead", "onSelfSpead", "atType",
+            "schedStartTime", "schedEndtTime",
+            "acitveTimerOn", "acitveTimerOff",
+            "activeCycleOn", "activeCycleOff",
+            "devHt", "activeHt", "devLt", "activeLt",
+            "devHh", "activeHh", "devLh", "activeLh",
+            "activeHtVpd", "activeHtVpdNums", "activeLtVpd", "activeLtVpdNums",
+            "targetTSwitch", "targetTemp", "targetTempF",
+            "targetHumiSwitch", "targetHumi",
+            "targetVpdSwitch", "targetVpd", "vpdSettingMode",
+            "settingMode", "loadType", "loadState",
+        ]
+
         payload = {}
-        for key, value in settings.items():
-            # Skip nested objects/dicts
-            if isinstance(value, dict):
-                continue
-            payload[key] = value
+        for key in DEVICE_CONTROL_KEYS:
+            if key in settings:
+                value = settings[key]
+                # Skip None values
+                if value is not None:
+                    payload[key] = value
 
         # Override the speed-related fields
         # atType: 2 = ON mode (manual speed)
