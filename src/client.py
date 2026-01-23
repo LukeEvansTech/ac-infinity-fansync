@@ -177,6 +177,14 @@ class ACInfinityClient:
         payload["atType"] = 2  # ON mode for manual speed control
         payload["onSpead"] = speed  # Target speed (note the typo in API)
 
+        # Disable all auto triggers to ensure ON mode takes effect
+        payload["activeHt"] = 0  # Disable high temp trigger
+        payload["activeLt"] = 0  # Disable low temp trigger
+        payload["activeHh"] = 0  # Disable high humidity trigger
+        payload["activeLh"] = 0  # Disable low humidity trigger
+        payload["activeHtVpd"] = 0  # Disable high VPD trigger
+        payload["activeLtVpd"] = 0  # Disable low VPD trigger
+
         logger.debug("Sending payload: %s", payload)
 
         try:
