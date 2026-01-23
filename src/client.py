@@ -141,7 +141,8 @@ class ACInfinityClient:
             logger.error("Cannot set speed: failed to get current settings")
             return False
 
-        logger.debug("Current settings: %s", settings)
+        logger.info("Current settings for port %d: atType=%s, onSpead=%s, speak=%s",
+                    port, settings.get("atType"), settings.get("onSpead"), settings.get("speak"))
 
         # Copy ALL settings from existing, then override what we need
         # This matches how the HA integration does it
@@ -180,7 +181,7 @@ class ACInfinityClient:
             response.raise_for_status()
             data = response.json()
 
-            logger.debug("API response: %s", data)
+            logger.info("API response: %s", data)
 
             if data.get("code") != 200:
                 logger.error("Failed to set speed: %s", data.get("msg"))
