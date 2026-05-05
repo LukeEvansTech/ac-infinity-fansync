@@ -108,23 +108,28 @@ jobs:
           push-to-registry: true
 
       - name: Summary
-        run: |
-          echo "## Build Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Image**: \`${{ env.REGISTRY }}/${IMAGE_NAME}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Version**: \`${STEPS_VERSION_OUTPUTS_VERSION}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Digest**: \`${STEPS_BUILD_OUTPUTS_DIGEST}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Tags" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            echo "${STEPS_META_RELEASE_OUTPUTS_TAGS}" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "${STEPS_META_DEV_OUTPUTS_TAGS}" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
           STEPS_VERSION_OUTPUTS_VERSION: ${{ steps.version.outputs.version }}
           STEPS_BUILD_OUTPUTS_DIGEST: ${{ steps.build.outputs.digest }}
           STEPS_META_RELEASE_OUTPUTS_TAGS: ${{ steps.meta-release.outputs.tags }}
           STEPS_META_DEV_OUTPUTS_TAGS: ${{ steps.meta-dev.outputs.tags }}
+        run: |
+          {
+            echo "## Build Complete"
+            echo ""
+            echo "**Image**: \`${REGISTRY}/${IMAGE_NAME}\`"
+            echo "**Version**: \`${STEPS_VERSION_OUTPUTS_VERSION}\`"
+            echo "**Digest**: \`${STEPS_BUILD_OUTPUTS_DIGEST}\`"
+            echo ""
+            echo "### Tags"
+            echo '```'
+            if [[ "$GITHUB_EVENT_NAME" == "release" ]]; then
+              echo "${STEPS_META_RELEASE_OUTPUTS_TAGS}"
+            else
+              echo "${STEPS_META_DEV_OUTPUTS_TAGS}"
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
