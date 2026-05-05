@@ -20,6 +20,9 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/ac-infinity-fansync
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build Container
@@ -31,24 +34,28 @@ jobs:
       attestations: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
 
       - name: Read VERSION file
         id: version
         run: |
-          VERSION=$(cat VERSION | tr -d '[:space:]')
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "major=$(echo $VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT
-          echo "minor=$(echo $VERSION | cut -d. -f1-2)" >> $GITHUB_OUTPUT
+          VERSION=$(tr -d '[:space:]' < VERSION)
+          {
+            echo "version=${VERSION}"
+            echo "major=${VERSION%%.*}"
+            echo "minor=${VERSION%.*}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -57,7 +64,7 @@ jobs:
       - name: Extract metadata (non-release)
         id: meta-dev
         if: github.event_name != 'release'
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
@@ -69,7 +76,7 @@ jobs:
       - name: Extract metadata (release)
         id: meta-release
         if: github.event_name == 'release'
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
@@ -82,7 +89,7 @@ jobs:
 
       - name: Build and push
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -94,25 +101,35 @@ jobs:
 
       - name: Generate artifact attestation
         if: github.event_name != 'pull_request'
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
       - name: Summary
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          STEPS_VERSION_OUTPUTS_VERSION: ${{ steps.version.outputs.version }}
+          STEPS_BUILD_OUTPUTS_DIGEST: ${{ steps.build.outputs.digest }}
+          STEPS_META_RELEASE_OUTPUTS_TAGS: ${{ steps.meta-release.outputs.tags }}
+          STEPS_META_DEV_OUTPUTS_TAGS: ${{ steps.meta-dev.outputs.tags }}
         run: |
-          echo "## Build Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Image**: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Version**: \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Digest**: \`${{ steps.build.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Tags" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            echo "${{ steps.meta-release.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "${{ steps.meta-dev.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Build Complete"
+            echo ""
+            echo "**Image**: \`${REGISTRY}/${IMAGE_NAME}\`"
+            echo "**Version**: \`${STEPS_VERSION_OUTPUTS_VERSION}\`"
+            echo "**Digest**: \`${STEPS_BUILD_OUTPUTS_DIGEST}\`"
+            echo ""
+            echo "### Tags"
+            echo '```'
+            if [[ "$GITHUB_EVENT_NAME" == "release" ]]; then
+              echo "${STEPS_META_RELEASE_OUTPUTS_TAGS}"
+            else
+              echo "${STEPS_META_DEV_OUTPUTS_TAGS}"
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
