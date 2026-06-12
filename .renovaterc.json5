@@ -1,5 +1,5 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>LukeEvansTech/renovate-config"],
-  "ignorePaths": ["**/*.sops.*", "**/.archive/**", "**/resources/**"]
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["github>LukeEvansTech/renovate-config"],
+  ignorePaths: ["**/*.sops.*", "**/.archive/**", "**/resources/**"],
 }
