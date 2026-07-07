@@ -1,0 +1,24 @@
+alias: AC Infinity
+description: >-
+  **Syncs intake fan to exhaust fan speed**
+
+  - **Leader:** Garage Main Rack Cloudline Pro T8 (exhaust)
+  - **Follower:** Garage Comms Rack Cloudline T8 (intake)
+  - **Ratio:** 85% of exhaust speed
+  - **Minimum:** Intake never goes below 2
+trigger:
+  - platform: state
+    entity_id: sensor.garage_main_rack_cloudline_pro_t8_current_power
+condition:
+  - condition: template
+    value_template: "{{ trigger.from_state.state != trigger.to_state.state }}"
+action:
+  - service: number.set_value
+    target:
+      entity_id: number.garage_comms_rack_cloudline_t8_on_power
+    data:
+      value: >-
+        {% set exhaust = states('sensor.garage_main_rack_cloudline_pro_t8_current_power') | float %}
+        {% set calculated = exhaust * 0.85 %}
+        {% set floored = [calculated, 2] | max %}
+        {{ floored | round(0) | int }}
