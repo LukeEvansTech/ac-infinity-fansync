@@ -4,10 +4,10 @@ Syncs the intake fan (Garage Comms Rack Cloudline T8) to follow the exhaust fan 
 
 ## Entity IDs
 
-| Role | Device | Entity ID |
-|------|--------|-----------|
-| Exhaust (leader) | Garage Main Rack Cloudline Pro T8 | `number.garage_main_rack_cloudline_pro_t8_current_power` |
-| Intake (follower) | Garage Comms Rack Cloudline T8 | `number.garage_comms_rack_cloudline_t8_on_power` |
+| Role              | Device                            | Entity ID                                                |
+| ----------------- | --------------------------------- | -------------------------------------------------------- |
+| Exhaust (leader)  | Garage Main Rack Cloudline Pro T8 | `number.garage_main_rack_cloudline_pro_t8_current_power` |
+| Intake (follower) | Garage Comms Rack Cloudline T8    | `number.garage_comms_rack_cloudline_t8_on_power`         |
 
 > **Note:** Verify these entity IDs in Developer Tools → States before using.
 
@@ -44,18 +44,18 @@ automation:
 ## Speed Mapping
 
 | Exhaust | Calculated (85%) | Actual Intake (min 2) |
-|---------|------------------|----------------------|
-| 10 | 8.5 | 9 |
-| 9 | 7.65 | 8 |
-| 8 | 6.8 | 7 |
-| 7 | 5.95 | 6 |
-| 6 | 5.1 | 5 |
-| 5 | 4.25 | 4 |
-| 4 | 3.4 | 3 |
-| 3 | 2.55 | 3 |
-| 2 | 1.7 | 2 |
-| 1 | 0.85 | 2 |
-| 0 | 0 | 2 |
+| ------- | ---------------- | --------------------- |
+| 10      | 8.5              | 9                     |
+| 9       | 7.65             | 8                     |
+| 8       | 6.8              | 7                     |
+| 7       | 5.95             | 6                     |
+| 6       | 5.1              | 5                     |
+| 5       | 4.25             | 4                     |
+| 4       | 3.4              | 3                     |
+| 3       | 2.55             | 3                     |
+| 2       | 1.7              | 2                     |
+| 1       | 0.85             | 2                     |
+| 0       | 0                | 2                     |
 
 > **Note:** If exhaust is 0 (off), intake will still run at 2. If you want intake to turn off when exhaust is off, modify the condition accordingly.
 
