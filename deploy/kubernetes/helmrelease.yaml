@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/lukeevanstech/ac-infinity-fansync
-              tag: 1.0.0
+              tag: 1.0.0@sha256:7aac98006166d46264824b411498ea5b8bf96969bb3b52ea9033de763989a795
             env:
               TZ: ${TIMEZONE:=UTC}
               LOG_LEVEL: INFO
